@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import QueryClient from "@/components/QueryClient";
+import Header from "@/components/Header";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -17,6 +18,7 @@ export default function RootLayout({
       <QueryClient>
         <body className='antialiased'>
           <div className="flex flex-col justify-center items-center bg-grid-paper w-screen h-screen">
+            <Header />
             {children}
           </div>
         </body>

@@ -1,4 +1,8 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useQuery,
+  UseQueryOptions,
+} from '@tanstack/react-query';
 import { apiClient } from '@/api/ApiClient';
 
 export type GetCharactersParams = {
@@ -20,18 +24,27 @@ export const getCharacterById = async (id: number | string) => {
   return res.data;
 };
 
-export const useGetCharacters = (params: GetCharactersParams) => {
+export const getCharactersByIds = async (ids: (number | string)[]) => {
+  const res = await apiClient.get(`/character/${ids.join(',')}`);
+  return res.data;
+};
+
+export const useGetCharacters = (
+  params: GetCharactersParams,
+  options?: Partial<UseQueryOptions<any>>
+) => {
   return useQuery({
     queryKey: ['characters', params],
     queryFn: () => getCharacters(params),
     placeholderData: keepPreviousData,
+    ...options,
   });
 };
 
-export const useGetCharacterById = (id: number | string) => {
+export const useGetCharactersByIds = (ids: (number | string)[]) => {
   return useQuery({
-    queryKey: ['character', id],
-    queryFn: () => getCharacterById(id),
-    enabled: !!id,
+    queryKey: ['characters', ids],
+    queryFn: () => getCharactersByIds(ids),
+    enabled: ids.length > 0,
   });
 };

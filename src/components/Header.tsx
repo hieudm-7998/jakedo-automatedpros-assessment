@@ -1,78 +1,133 @@
-'use client';
+"use client";
 
-import { useState, useMemo, useEffect } from 'react';
-import debounce from 'lodash/debounce';
-import { useLocationsSearch } from '@/queries/locations';
-import { useRouter } from 'next/navigation';
+import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import debounce from "lodash/debounce";
 
-export default function HeaderSearch() {
-    const [type, setType] = useState<'character' | 'episode' | 'location'>('character');
-    const [query, setQuery] = useState('');
+import { Input } from "@/components/ui/input";
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import {
+    Card,
+    CardContent,
+} from "@/components/ui/card";
+import { useGetCharacters } from "@/api/Character/useCharacter";
+import { useGetEpisodes } from "@/api/Episode/useEpisode";
+import { useGetLocations } from "@/api/Location/useLocation";
+
+
+export default function Header() {
     const router = useRouter();
 
-    const debouncedSetQuery = useMemo(
-        () => debounce((val: string) => setQuery(val), 400),
+    const [resource, setResource] = useState<"character" | "episode" | "location">(
+        "character"
+    );
+    const [search, setSearch] = useState("");
+
+    // Debounce input để tránh spam query
+    const [debouncedSearch, setDebouncedSearch] = useState("");
+    const debounceSearch = useMemo(
+        () =>
+            debounce((val: string) => {
+                setDebouncedSearch(val);
+            }, 500),
         []
     );
 
-    useEffect(() => {
-        return () => {
-            debouncedSetQuery.cancel();
-        };
-    }, [debouncedSetQuery]);
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        debouncedSetQuery(e.target.value);
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearch(e.target.value);
+        debounceSearch(e.target.value);
     };
 
-    // call query theo type
-    const { data: characters } = useCharactersSearch(query, { enabled: type === 'character' && !!query });
-    const { data: episodes } = useEpisodesSearch(query, { enabled: type === 'episode' && !!query });
-    const { data: locations } = useLocationsSearch(query, { enabled: type === 'location' && !!query });
+    // gọi API theo resource
+    const { data: charData } = useGetCharacters(
+        resource === "character" && debouncedSearch
+            ? { name: debouncedSearch, page: 1 }
+            : ({} as any)
+    );
+    const { data: epData } = useGetEpisodes(
+        resource === "episode" && debouncedSearch
+            ? { name: debouncedSearch, page: 1 }
+            : ({} as any)
+    );
+    const { data: locData } = useGetLocations(
+        resource === "location" && debouncedSearch
+            ? { name: debouncedSearch, page: 1 }
+            : ({} as any)
+    );
 
-    const results = type === 'character' ? characters :
-        type === 'episode' ? episodes :
-            locations;
+    const results =
+        resource === "character"
+            ? charData?.results || []
+            : resource === "episode"
+                ? epData?.results || []
+                : locData?.results || [];
+
+    const handleSelectResult = (id: number | string) => {
+        router.push(`/${resource}/${id}`);
+        setSearch("");
+        setDebouncedSearch("");
+    };
 
     return (
-        <div className="w-full max-w-xl mx-auto mt-6">
+        <div className="bg-white brand-shadow mb-5 px-8 py-5 border-2 rounded w-full max-w-3xl">
             <div className="flex gap-2">
-                <input
+                <Input
+                    className="w-[250px]"
                     type="text"
-                    placeholder={`Search ${type}...`}
-                    onChange={handleChange}
-                    className="border px-3 py-2 rounded w-full"
+                    placeholder={`Search ${resource}...`}
+                    value={search}
+                    onChange={handleSearchChange}
                 />
-                <select
-                    value={type}
-                    onChange={(e) => setType(e.target.value as any)}
-                    className="border px-2 py-2 rounded"
+
+                <Select
+                    defaultValue="character"
+                    onValueChange={(val: "character" | "episode" | "location") =>
+                        setResource(val)
+                    }
                 >
-                    <option value="character">Character</option>
-                    <option value="episode">Episode</option>
-                    <option value="location">Location</option>
-                </select>
+                    <SelectTrigger className="w-[140px]">
+                        <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white w-[200px]">
+                        <SelectGroup>
+                            <SelectItem className="cursor-pointer" value="character">Character</SelectItem>
+                            <SelectItem className="cursor-pointer" value="episode">Episode</SelectItem>
+                            <SelectItem className="cursor-pointer" value="location">Location</SelectItem>
+                        </SelectGroup>
+                    </SelectContent>
+                </Select>
             </div>
 
-            {query && results?.length > 0 && (
-                <ul className="mt-2 border rounded bg-white shadow divide-y">
-                    {results.map((item: any) => (
-                        <li
-                            key={item.id}
-                            onClick={() => router.push(`/${type}/${item.id}`)}
-                            className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                        >
-                            {type === 'character' ? (
-                                <div className="flex items-center gap-2">
-                                    <img src={item.image} alt={item.name} className="w-6 h-6 rounded-full" />
-                                    <span>{item.name}</span>
-                                </div>
-                            ) : (
-                                <span>{item.name}</span>
-                            )}
-                        </li>
-                    ))}
-                </ul>
+            {/* Dropdown results */}
+            {debouncedSearch && results.length > 0 && (
+                <Card className="top-14 z-50 absolute bg-white w-full max-w-xl max-h-[300px] overflow-y-auto">
+                    <CardContent className="flex flex-col gap-1 p-2">
+                        {results.map((item: any) => (
+                            <button
+                                key={item.id}
+                                className="hover:bg-accent px-2 py-1 rounded text-left"
+                                onClick={() => handleSelectResult(item.id)}
+                            >
+                                {resource === "character" && (
+                                    <span>{item.name} — {item.status}</span>
+                                )}
+                                {resource === "episode" && (
+                                    <span>{item.episode}: {item.name}</span>
+                                )}
+                                {resource === "location" && (
+                                    <span>{item.name} ({item.dimension})</span>
+                                )}
+                            </button>
+                        ))}
+                    </CardContent>
+                </Card>
             )}
         </div>
     );
