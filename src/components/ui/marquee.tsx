@@ -8,7 +8,7 @@ type MarqueeProps<T> = {
 export default function Marquee<T>({ items, renderItem }: MarqueeProps<T>) {
   return (
     <div className="relative flex bg-secondary-background border-border w-full overflow-x-hidden font-base text-foreground">
-      <div className="flex py-12 whitespace-nowrap animate-marquee">
+      <div className="flex whitespace-nowrap animate-marquee">
         {items.map((item, index) => (
           <div key={index} className="mx-4">
             {renderItem(item, index)}
@@ -16,7 +16,7 @@ export default function Marquee<T>({ items, renderItem }: MarqueeProps<T>) {
         ))}
       </div>
 
-      <div className="top-0 absolute flex py-12 whitespace-nowrap animate-marquee2">
+      <div className="top-0 absolute flex whitespace-nowrap animate-marquee2">
         {items.map((item, index) => (
           <div key={`dup-${index}`} className="mx-4">
             {renderItem(item, index)}

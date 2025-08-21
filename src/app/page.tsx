@@ -1,9 +1,5 @@
-import VirtualTabsAll from "@/components/VirtualTabsAll";
+import HomepageList from '@/components/HomepageList';
 
 export default function Home() {
-  return (
-    <div className="bg-white brand-shadow px-8 py-5 border-2 rounded w-full max-w-7xl">
-      <VirtualTabsAll />
-    </div>
-  );
+  return <HomepageList />;
 }

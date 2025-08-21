@@ -17,7 +17,7 @@ export default function RootLayout({
     <html lang="en">
       <QueryClient>
         <body className='antialiased'>
-          <div className="flex flex-col justify-center items-center bg-grid-paper w-screen h-screen">
+          <div className="bg-grid-paper min-h-screen py-10">
             <Header />
             {children}
           </div>
