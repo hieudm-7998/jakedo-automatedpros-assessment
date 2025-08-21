@@ -83,6 +83,31 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+  @keyframes marquee {
+    0% {
+      transform: translateX(0%);
+    }
+    100% {
+      transform: translateX(-100%);
+    }
+  }
+
+  @keyframes marquee2 {
+    0% {
+      transform: translateX(100%);
+    }
+    100% {
+      transform: translateX(0%);
+    }
+  }
+
+  .animate-marquee {
+    animation: marquee 60s linear infinite;
+  }
+
+  .animate-marquee2 {
+    animation: marquee2 60s linear infinite;
+  }
 }
 
 .bg-grid-paper {
@@ -91,15 +116,15 @@ body {
       0deg,
       transparent 0px,
       transparent 19px,
-      rgba(0,0,0,0.1) 19px,
-      rgba(0,0,0,0.1) 20px
+      rgba(0, 0, 0, 0.1) 19px,
+      rgba(0, 0, 0, 0.1) 20px
     ),
     repeating-linear-gradient(
       90deg,
       transparent 0px,
       transparent 19px,
-      rgba(0,0,0,0.1) 19px,
-      rgba(0,0,0,0.1) 20px
+      rgba(0, 0, 0, 0.1) 19px,
+      rgba(0, 0, 0, 0.1) 20px
     );
 }
 

@@ -1,100 +1,104 @@
-"use client"
+'use client';
 
-import React, { useRef, useState } from "react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useGetCharacters } from "@/api/Character/useCharacter"
-import { useGetEpisodes } from "@/api/Episode/useEpisode"
-import { useGetLocations } from "@/api/Location/useLocation"
-import { useVirtualizer } from "@tanstack/react-virtual"
+import { useGetCharacters } from '@/api/Character/useCharacter';
+// import { useGetEpisodes } from "@/api/Episode/useEpisode"
+// import { useGetLocations } from "@/api/Location/useLocation"
+import Marquee from '@/components/ui/marquee';
+import { Card } from './ui/card';
+import { Character } from '@/schema/CharacterSchema';
+import Link from 'next/link';
+import { ChevronRight } from 'lucide-react';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 export default function VirtualTabsAll() {
-    const [activeTab, setActiveTab] = useState<"characters" | "episodes" | "locations">("characters")
-
-    const { data: charactersData } = useGetCharacters(
-        { page: 1 },
-        {
-            enabled: activeTab === "characters",
-            staleTime: 1000 * 60 * 5
-        }
-    )
-    const { data: episodesData } = useGetEpisodes(
-        { page: 1 },
-        {
-            enabled: activeTab === "episodes",
-            staleTime: 1000 * 60 * 5
-        }
-    )
-    const { data: locationsData } = useGetLocations(
-        { page: 1 },
-        {
-            enabled: activeTab === "locations",
-            staleTime: 1000 * 60 * 5
-        }
-    )
-
-    const characters = charactersData?.results || []
-    const episodes = episodesData?.results || []
-    const locations = locationsData?.results || []
-
-    const createVirtualList = (items: any[]) => {
-        const parentRef = useRef<HTMLDivElement>(null)
-        const virtualizer = useVirtualizer({
-            count: items.length,
-            getScrollElement: () => parentRef.current,
-            estimateSize: () => 40,
-            overscan: 5,
-        })
-        return { parentRef, virtualizer }
+  const { isLoading, data: charactersData } = useGetCharacters(
+    { page: 1 },
+    {
+      staleTime: 1000 * 60 * 5,
     }
+  );
+  // const { data: episodesData } = useGetEpisodes(
+  //     { page: 1 },
+  //     {
+  //         staleTime: 1000 * 60 * 5
+  //     }
+  // )
+  // const { data: locationsData } = useGetLocations(
+  //     { page: 1 },
+  //     {
+  //         staleTime: 1000 * 60 * 5
+  //     }
+  // )
 
-    const charVirtual = createVirtualList(characters)
-    const epVirtual = createVirtualList(episodes)
-    const locVirtual = createVirtualList(locations)
+  const characters = charactersData?.results || [];
+  console.log('characters', characters);
+  // const episodes = episodesData?.results || []
+  // const locations = locationsData?.results || []
 
-    const renderVirtualList = (items: any[], virtual: ReturnType<typeof createVirtualList>, type: string) => (
-        <div ref={virtual.parentRef} style={{ height: 400, overflow: "auto" }}>
-            <div style={{ height: virtual.virtualizer.getTotalSize(), position: "relative" }}>
-                {virtual.virtualizer.getVirtualItems().map((vItem) => {
-                    const item = items[vItem.index]
-                    return (
-                        <div
-                            key={item.id}
-                            style={{
-                                position: "absolute",
-                                top: 0,
-                                left: 0,
-                                width: "100%",
-                                transform: `translateY(${vItem.start}px)`,
-                                padding: "8px 12px",
-                                borderBottom: "1px solid #e5e7eb",
-                                cursor: "pointer",
-                            }}
-                            onClick={() => alert(`Go to ${type} detail: ${item.id}`)}
-                        >
-                            {item.name || item.episode || item.dimension}
-                        </div>
-                    )
-                })}
-            </div>
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div>
+      <div>
+        <div className='flex justify-between items-center mb-4'>
+          <h2 className='font-bold text-3xl'>Characters</h2>
+          <Link href='/characters'>
+            View more <ChevronRight className='inline' />
+          </Link>
         </div>
-    )
-
-    return (
-        <Tabs
-            defaultValue="characters"
-            value={activeTab}
-            onValueChange={(val) => setActiveTab(val as any)}
-            className="w-full"
-        >
-            <TabsList className="grid grid-cols-3 w-full">
-                <TabsTrigger value="characters">Characters</TabsTrigger>
-                <TabsTrigger value="episodes">Episodes</TabsTrigger>
-                <TabsTrigger value="locations">Locations</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="characters">{renderVirtualList(characters, charVirtual, "character")}</TabsContent>
-            <TabsContent value="episodes">{renderVirtualList(episodes, epVirtual, "episode")}</TabsContent>
-            <TabsContent value="locations">{renderVirtualList(locations, locVirtual, "location")}</TabsContent>
-        </Tabs>
-    )
+        <Marquee
+          items={characters as Character[]}
+          renderItem={(character: Character) => (
+            <CharacterCard {...character} />
+          )}
+        />
+      </div>
+    </div>
+  );
 }
+
+const CharacterCard = (character: Character) => {
+  const router = useRouter();
+
+  const renderStatusIcon = (status: string) => {
+    switch (status) {
+      case 'Alive':
+        return <span className='w-8 h-8 text-green-500'>●</span>;
+      case 'Dead':
+        return <span className='w-8 h-8 text-red-500'>●</span>;
+      case 'unknown':
+        return <span className='w-8 h-8 text-gray-500'>●</span>;
+      default:
+        return <span className='w-8 h-8 text-gray-500'>●</span>;
+    }
+  };
+  return (
+    <div
+      className='relative brand-shadow hover:shadow-none mb-2 border-2 border-black rounded-md transition-all hover:translate-x-boxShadowX hover:translate-y-boxShadowY cursor-pointer'
+      onClick={() => router.push(`/characters/${character.id}`)}
+    >
+      <div className='top-3 right-3 absolute'></div>
+      <div>
+        <Image
+          src={character.image}
+          alt={character.name}
+          width={0}
+          height={0}
+          className='rounded-t-md w-full min-w-[250px] h-[220px] object-center object-cover'
+          unoptimized
+          priority
+        />
+      </div>
+      <div className='p-5'>
+        <h1 className='mb-2 font-bold text-xl'>{character.name}</h1>
+        <div className='font-light text-sm italic capitalize'>
+          {renderStatusIcon(character.status)} {character.status} -{' '}
+          {character.species}
+        </div>
+      </div>
+    </div>
+  );
+};

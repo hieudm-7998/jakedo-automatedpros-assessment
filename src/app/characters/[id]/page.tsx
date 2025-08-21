@@ -2,19 +2,29 @@
 
 import { useGetCharacterById } from '@/api/Character/useCharacter';
 import { useParams } from 'next/navigation';
+import Image from 'next/image';
 
 export default function CharacterDetailPage() {
-    const { id } = useParams();
-    const { data, isLoading } = useGetCharacterById(id as string);
+  const { id } = useParams<{ id: string }>();
+  const { data: character, isLoading } = useGetCharacterById(id);
 
-    if (isLoading) return <div>Loading character...</div>;
+  if (isLoading) return <div>Loading character...</div>;
 
-    return (
-        <div>
-            <h1>{data.name}</h1>
-            <p>Status: {data.status}</p>
-            <p>Species: {data.species}</p>
-            <img src={data.image} alt={data.name} />
-        </div>
-    );
+  console.log('Character data:', character);
+  if (!character) return <div>Character not found</div>;
+
+  return (
+    <div>
+      <h1>{character.name}</h1>
+      <p>Status: {character.status}</p>
+      <p>Species: {character.species}</p>
+      <Image
+        src={character.image}
+        alt={character.name}
+        width={300}
+        height={300}
+        priority
+      />
+    </div>
+  );
 }
