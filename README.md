@@ -1,37 +1,48 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
+# [Jake Do] AutomatedPros -- React.js Assessment
 
-First, run the development server:
+This application is deployed at: [https://rickandmortydatabase.vercel.app/](https://rickandmortydatabase.vercel.app/ "https://rickandmortydatabase.vercel.app/")
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+---
+
+## Client-side instruction
+
+Make sure that your `nodejs` version is `22` or higher than `16`.
+
+You can find `nodejs` install package [here](https://nodejs.org/en/download).
+
+Pull this repository to your local machine, open terminal from this source code folder, then run:
+
+```
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Please ignore the vulnerabilities warning (due to old version of dependency packages).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Run this command to open the application on local:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+npm run dev
+```
 
-## Learn More
+Then, open `http://localhost:3000/` on your browser to explore the app.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Breakdowns
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+* This project is using *Nextjs 15* and *React 19.*
+* I combined *Typescript*, *zod* and *Tanstack Query* to handle most API call across the applications.
+* There are 2 filters on `/characters` and `/locations` using *AbortController* to avoid race conditions.
+* The filter URL is following the *the source of truth,* that means we can share the url with filter state recreating whenever visit the page. Eg. `https://rickandmortydatabase.vercel.app/characters?name=Smith&page=1&gender=male&status=alive`
+* We can add any Character/Episode/Location to Favorite and those stored into *localStorage* (through *zustand/middleware*)
+* I used *TailwindCSS*, *Shadcn* with *my own custom style* to make this application. So far I didn't have much time to handle the mobile responsive/theme toggle, this is a trade-off.
 
-## Deploy on Vercel
+## Credit
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Jake (Hieu Do Minh)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# jakedo-automatedpros-assessment
+jakedo.developer@gmail.com
+
+[https://jakedo-portfolio.vercel.app](https://jakedo-portfolio.vercel.app/)

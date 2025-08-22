@@ -1,30 +1,31 @@
-'use client';
+import { getCharacterById } from '@/api/Character/useCharacter';
+import type { Metadata } from 'next';
+import CharacterDetailClient from './CharacterDetailClient';
 
-import { useGetCharacterById } from '@/api/Character/useCharacter';
-import { useParams } from 'next/navigation';
-import Image from 'next/image';
+export async function generateMetadata(props: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await props.params;
+  const character = await getCharacterById(id);
 
-export default function CharacterDetailPage() {
-  const { id } = useParams<{ id: string }>();
-  const { data: character, isLoading } = useGetCharacterById(id);
+  if (!character) {
+    return { title: 'Character not found' };
+  }
 
-  if (isLoading) return <div>Loading character...</div>;
+  return {
+    title: character.name,
+    description: character.name || 'Detailed Rick & Morty character view',
+    openGraph: {
+      title: character.name,
+      description: character.name,
+      images: [character.image],
+    },
+  };
+}
 
-  console.log('Character data:', character);
-  if (!character) return <div>Character not found</div>;
-
-  return (
-    <div>
-      <h1>{character.name}</h1>
-      <p>Status: {character.status}</p>
-      <p>Species: {character.species}</p>
-      <Image
-        src={character.image}
-        alt={character.name}
-        width={300}
-        height={300}
-        priority
-      />
-    </div>
-  );
+export default async function CharacterDetailPage(props: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await props.params;
+  return <CharacterDetailClient id={id} />;
 }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   keepPreviousData,
   useQuery,
@@ -14,29 +15,69 @@ import {
 export type GetCharactersParams = {
   page?: number;
   name?: string;
-  status?: 'alive' | 'dead' | 'unknown';
+  status?: string;
   species?: string;
   type?: string;
-  gender?: 'female' | 'male' | 'genderless' | 'unknown';
+  gender?: string;
+  signal?: AbortSignal;
 };
 
-export const getCharacters = async (params: GetCharactersParams = {}) => {
-  const res = await apiClient.get('/character', { params });
-  return CharactersResponseSchema.parse(res.data);
+export const getCharacters = async (
+  params: GetCharactersParams = {}
+): Promise<CharactersResponse> => {
+  try {
+    const { signal, ...requestParams } = params;
+
+    const res = await apiClient.get('/character', {
+      params: requestParams,
+      signal,
+    });
+
+    return CharactersResponseSchema.parse(res.data);
+  } catch (err: any) {
+    if (err.name === 'AbortError' || err.message === 'Request aborted') {
+      throw new Error('Request aborted');
+    }
+    throw err;
+  }
 };
 
 export const getCharacterById = async (
-  id: number | string
+  id: string | number,
+  signal?: AbortSignal
 ): Promise<Character> => {
-  const res = await apiClient.get(`/character/${id}`);
-  return CharacterSchema.parse(res.data);
+  try {
+    const res = await apiClient.get(`/character/${id}`, { signal });
+    const parsed = CharacterSchema.safeParse(res.data);
+    if (!parsed.success) {
+      throw new Error('Failed to parse character data');
+    }
+    return parsed.data;
+  } catch (err: any) {
+    if (err.name === 'AbortError' || err.message === 'Request aborted') {
+      throw new Error('Request aborted');
+    }
+
+    if (err?.response?.status === 404) {
+      throw new Error('Character not found');
+    }
+    throw err;
+  }
 };
 
 export const getCharactersByIds = async (
-  ids: (number | string)[]
+  ids: (number | string)[],
+  signal?: AbortSignal
 ): Promise<Character[]> => {
-  const res = await apiClient.get(`/character/${ids.join(',')}`);
-  return res.data.map((c: unknown) => CharacterSchema.parse(c));
+  try {
+    const res = await apiClient.get(`/character/${ids.join(',')}`, { signal });
+    return res.data.map((c: unknown) => CharacterSchema.parse(c));
+  } catch (err: any) {
+    if (err.name === 'AbortError' || err.message === 'Request aborted') {
+      throw new Error('Request aborted');
+    }
+    throw err;
+  }
 };
 
 export const useGetCharacters = (
@@ -45,24 +86,32 @@ export const useGetCharacters = (
 ) => {
   return useQuery<CharactersResponse>({
     queryKey: ['characters', params],
-    queryFn: () => getCharacters(params),
+    queryFn: ({ signal }) => getCharacters({ ...params, signal }),
     placeholderData: keepPreviousData,
     ...options,
   });
 };
 
-export const useGetCharacterById = (id: number | string) => {
+export const useGetCharacterById = (
+  id: number | string,
+  options?: Omit<UseQueryOptions<Character>, 'queryKey' | 'queryFn'>
+) => {
   return useQuery<Character>({
     queryKey: ['character', id],
-    queryFn: () => getCharacterById(id),
+    queryFn: ({ signal }) => getCharacterById(id, signal),
     enabled: !!id,
+    retry: (failureCount, error) => {
+      if (error.message === 'Character not found') return false;
+      return failureCount < 3;
+    },
+    ...options,
   });
 };
 
 export const useGetCharactersByIds = (ids: (number | string)[]) => {
   return useQuery<Character[]>({
     queryKey: ['characters', ids],
-    queryFn: () => getCharactersByIds(ids),
+    queryFn: ({ signal }) => getCharactersByIds(ids, signal),
     enabled: ids.length > 0,
   });
 };

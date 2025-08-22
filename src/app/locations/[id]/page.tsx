@@ -1,19 +1,33 @@
-'use client';
+import { getLocationById } from '@/api/Location/useLocation';
+import type { Metadata } from 'next';
+import LocationDetailClient from './LocationDetailClient';
 
-import { useGetLocationById } from '@/api/Location/useLocation';
-import { useParams } from 'next/navigation';
+export async function generateMetadata(props: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await props.params;
+  const location = await getLocationById(id);
 
-export default function LocationDetailPage() {
-    const { id } = useParams();
-    const { data, isLoading } = useGetLocationById(id as string);
+  if (!location) {
+    return { title: 'Location not found' };
+  }
 
-    if (isLoading) return <div>Loading location...</div>;
+  const title = `${location.name} — ${location.type || 'Location'}`;
+  const description = `Dimension: ${location.dimension || 'Unknown'}`;
 
-    return (
-        <div>
-            <h1>{data.name}</h1>
-            <p>Type: {data.type}</p>
-            <p>Dimension: {data.dimension}</p>
-        </div>
-    );
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+    },
+  };
+}
+
+export default async function LocationDetailPage(props: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await props.params;
+  return <LocationDetailClient id={id} />;
 }

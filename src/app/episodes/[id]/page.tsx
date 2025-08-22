@@ -1,19 +1,30 @@
-'use client';
+import { getEpisodeById } from '@/api/Episode/useEpisode';
+import type { Metadata } from 'next';
+import EpisodeDetailClient from './EpisodeDetailClient';
 
-import { useGetEpisodeById } from '@/api/Episode/useEpisode';
-import { useParams } from 'next/navigation';
+export async function generateMetadata(props: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await props.params;
+  const episode = await getEpisodeById(id);
 
-export default function EpisodeDetailPage() {
-    const { id } = useParams();
-    const { data, isLoading } = useGetEpisodeById(id as string);
+  if (!episode) {
+    return { title: 'Episode not found' };
+  }
 
-    if (isLoading) return <div>Loading episode...</div>;
+  return {
+    title: `${episode.episode} - ${episode.name}`,
+    description: episode.name || 'Detailed Rick & Morty episode view',
+    openGraph: {
+      title: `${episode.episode} - ${episode.name}`,
+      description: episode.name,
+    },
+  };
+}
 
-    return (
-        <div>
-            <h1>{data.name}</h1>
-            <p>Air date: {data.air_date}</p>
-            <p>Code: {data.episode}</p>
-        </div>
-    );
+export default async function EpisodeDetailPage(props: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await props.params;
+  return <EpisodeDetailClient id={id} />;
 }

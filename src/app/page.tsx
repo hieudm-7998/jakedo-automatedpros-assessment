@@ -1,4 +1,4 @@
-import HomepageList from '@/components/HomepageList';
+import HomepageList from '@/components/Homepage/HomepageList';
 
 export default function Home() {
   return <HomepageList />;

@@ -102,11 +102,11 @@ body {
   }
 
   .animate-marquee {
-    animation: marquee 60s linear infinite;
+    animation: marquee 80s linear infinite;
   }
 
   .animate-marquee2 {
-    animation: marquee2 60s linear infinite;
+    animation: marquee2 80s linear infinite;
   }
 }
 
