@@ -6,7 +6,7 @@ import { useGetLocations } from '@/api/Location/useLocation';
 import Marquee from '@/components/ui/marquee';
 import { Character } from '@/schema/CharacterSchema';
 import Link from 'next/link';
-import { ChevronRight, Heart } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import CharacterCard from '../Characters/CharacterCard';
 import Loader from '../LoadingIndicator';
 import { useRandomNumber } from '@/utils/useRandomNumber';
@@ -20,14 +20,6 @@ import {
 } from '../ui/table';
 import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
-import { useFavorite } from '@/hooks/useFavorite';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '../ui/tooltip';
-import { Button } from '../ui/button';
 import { FavoriteButton } from '../FavoriteButton';
 
 export default function HomepageList() {
